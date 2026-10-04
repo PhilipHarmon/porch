@@ -1,0 +1,37 @@
+# Render blueprint for Porch
+# Deploy: connect this repo in the Render dashboard -> New -> Blueprint -> select render.yaml.
+# Deploy order matters: the API must exist before the client so you know its URL.
+
+services:
+  # ---- Backend API (Node + Express + MongoDB) ----
+  - type: web
+    name: porch-api
+    runtime: node
+    rootDir: server
+    buildCommand: npm ci --omit=dev
+    startCommand: node server.js
+    # seed.js is idempotent: seeds demo users/posts only when the DB is empty.
+    preDeployCommand: npm run seed
+    healthCheckPath: /api/health
+    envVars:
+      - key: MONGO_URI
+        sync: false # paste your MongoDB Atlas M0 connection string in the dashboard
+      - key: JWT_SECRET
+        generateValue: true # long random value, generated once
+      - key: CLIENT_URL
+        sync: false # set AFTER the client deploys, e.g. https://porch-client.onrender.com
+
+  # ---- Frontend (React + Vite static site) ----
+  - type: web
+    name: porch-client
+    runtime: static
+    rootDir: client
+    buildCommand: npm ci && npm run build
+    staticPublishPath: ./dist
+    envVars:
+      - key: VITE_API_URL
+        sync: false # set AFTER the API deploys, e.g. https://porch-api.onrender.com/api
+    routes:
+      - type: rewrite
+        source: /*
+        destination: /index.html
