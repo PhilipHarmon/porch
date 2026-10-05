@@ -22,6 +22,7 @@ function publicUser(user) {
     bio: user.bio || '',
     avatarUrl: user.avatarUrl || '',
     coverUrl: user.coverUrl || '',
+    isAdmin: !!user.isAdmin,
   };
 }
 

@@ -1,9 +1,9 @@
-import React, { useEffect, useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
-import { useAuth } from "../auth.jsx";
-import api from "../api.js";
-import Avatar from "./Avatar.jsx";
-import logo from "../assets/porch-logo.webp";
+import React, { useEffect, useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
+import { useAuth } from '../auth.jsx';
+import api from '../api.js';
+import Avatar from './Avatar.jsx';
+import logo from '../assets/porch-logo.webp';
 
 export default function Header() {
   const { user, logout } = useAuth();
@@ -18,7 +18,7 @@ export default function Header() {
     let cancelled = false;
     async function fetchUnread() {
       try {
-        const { data } = await api.get("/notifications/unread-count");
+        const { data } = await api.get('/notifications/unread-count');
         if (!cancelled) setUnread(data.count || 0);
       } catch {
         // Badge is best-effort; ignore failures.
@@ -34,7 +34,7 @@ export default function Header() {
 
   function handleLogout() {
     logout();
-    navigate("/login");
+    navigate('/login');
   }
 
   return (
@@ -50,15 +50,10 @@ export default function Header() {
             <Link to="/friends">Friends</Link>
             <Link to="/notifications" className="nav-with-badge">
               Notifications
-              {unread > 0 && (
-                <span className="nav-badge">{unread > 9 ? "9+" : unread}</span>
-              )}
+              {unread > 0 && <span className="nav-badge">{unread > 9 ? '9+' : unread}</span>}
             </Link>
-            <a
-              href="https://personal-blog-client.onrender.com"
-              target="_blank"
-              rel="noreferrer noopener"
-            >
+            {user.isAdmin && <Link to="/admin">Admin</Link>}
+            <a href="https://personal-blog-client.onrender.com" target="_blank" rel="noreferrer noopener">
               Blog
             </a>
           </nav>
@@ -66,11 +61,7 @@ export default function Header() {
         <div className="header-auth">
           {user ? (
             <>
-              <Link
-                to={`/profile/${user.id}`}
-                className="header-profile"
-                title="Your profile"
-              >
+              <Link to={`/profile/${user.id}`} className="header-profile" title="Your profile">
                 <Avatar user={user} size={32} />
               </Link>
               <button className="btn btn-ghost" onClick={handleLogout}>

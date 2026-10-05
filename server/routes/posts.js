@@ -5,6 +5,8 @@ const Like = require('../models/Like');
 const Comment = require('../models/Comment');
 const Notification = require('../models/Notification');
 const { authRequired, optionalAuth } = require('../middleware/auth');
+const { getFriendshipStatus } = require('../utils/friends');
+const User = require('../models/User');
 
 const router = express.Router();
 
@@ -30,14 +32,15 @@ async function serializePost(post, viewerId) {
     createdAt: post.createdAt,
     updatedAt: post.updatedAt,
     author: authorSummary(post.author),
+    wallOwner: post.wallOwner ? authorSummary(post.wallOwner) : null,
     likeCount,
     commentCount,
     likedByMe: !!liked,
   };
 }
 
-// GET /api/posts?author=<id>&page=&limit= — posts by one author, newest first.
-// (Used by profile pages.)
+// GET /api/posts?author=<id>&page=&limit= — posts by one author, newest first,
+// plus posts other people wrote on their wall. (Used by profile pages.)
 router.get('/', async (req, res, next) => {
   try {
     const { author } = req.query;
@@ -47,13 +50,14 @@ router.get('/', async (req, res, next) => {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
     const limit = Math.min(50, Math.max(1, parseInt(req.query.limit, 10) || 20));
 
-    const filter = { author };
+    const filter = { $or: [{ author }, { wallOwner: author }] };
     const total = await Post.countDocuments(filter);
     const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate('author', 'name avatarUrl');
+      .populate('author', 'name avatarUrl')
+      .populate('wallOwner', 'name avatarUrl');
 
     const items = [];
     for (const p of posts) {
@@ -65,20 +69,50 @@ router.get('/', async (req, res, next) => {
   }
 });
 
-// POST /api/posts — create a post (auth).
+// POST /api/posts — create a post (auth). Pass wallOwner (a friend's user id)
+// to write on their wall instead of your own timeline.
 router.post('/', authRequired, async (req, res, next) => {
   try {
-    const { text, imageUrl } = req.body || {};
+    const { text, imageUrl, wallOwner } = req.body || {};
     if (!text || !text.trim()) {
       return res.status(400).json({ error: 'Post text is required' });
+    }
+
+    let wallOwnerId = null;
+    if (wallOwner) {
+      if (!isValidId(wallOwner)) {
+        return res.status(400).json({ error: 'A valid wall owner id is required.' });
+      }
+      if (wallOwner.toString() !== req.user.id.toString()) {
+        const status = await getFriendshipStatus(req.user.id, wallOwner);
+        if (status !== 'friends') {
+          return res.status(403).json({ error: "You can only write on a friend's wall." });
+        }
+        wallOwnerId = wallOwner;
+      }
+      // Posting on your own wall is just a normal post.
     }
 
     const post = await Post.create({
       author: req.user.id,
       text: text.trim(),
       imageUrl: (imageUrl || '').trim(),
+      wallOwner: wallOwnerId,
     });
-    await post.populate('author', 'name avatarUrl');
+    await post.populate([
+      { path: 'author', select: 'name avatarUrl' },
+      { path: 'wallOwner', select: 'name avatarUrl' },
+    ]);
+
+    if (wallOwnerId) {
+      await Notification.create({
+        recipient: wallOwnerId,
+        type: 'wall_post',
+        actor: req.user.id,
+        post: post._id,
+      });
+    }
+
     return res.status(201).json(await serializePost(post, req.user.id));
   } catch (err) {
     return next(err);
@@ -91,7 +125,9 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
     if (!isValidId(req.params.id)) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    const post = await Post.findById(req.params.id).populate('author', 'name avatarUrl');
+    const post = await Post.findById(req.params.id)
+      .populate('author', 'name avatarUrl')
+      .populate('wallOwner', 'name avatarUrl');
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
@@ -133,7 +169,8 @@ router.put('/:id', authRequired, async (req, res, next) => {
   }
 });
 
-// DELETE /api/posts/:id — delete own post and its likes/comments/notifications (auth).
+// DELETE /api/posts/:id — delete a post and its likes/comments/notifications.
+// Authors can delete their own posts; admins can delete anyone's.
 router.delete('/:id', authRequired, async (req, res, next) => {
   try {
     if (!isValidId(req.params.id)) {
@@ -143,7 +180,13 @@ router.delete('/:id', authRequired, async (req, res, next) => {
     if (!post) {
       return res.status(404).json({ error: 'Post not found' });
     }
-    if (post.author.toString() !== req.user.id) {
+    const isOwner = post.author.toString() === req.user.id;
+    let isAdmin = false;
+    if (!isOwner) {
+      const me = await User.findById(req.user.id).select('isAdmin');
+      isAdmin = !!me && !!me.isAdmin;
+    }
+    if (!isOwner && !isAdmin) {
       return res.status(403).json({ error: 'You can only delete your own posts' });
     }
 

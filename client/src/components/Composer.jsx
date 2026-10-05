@@ -3,12 +3,17 @@ import api from '../api.js';
 import { apiError } from '../utils.js';
 
 // "What's on your mind?" box at the top of the feed.
-export default function Composer({ onPosted }) {
+// Pass wallOwnerId + wallOwnerName to write on a friend's wall instead.
+export default function Composer({ onPosted, wallOwnerId, wallOwnerName }) {
   const [text, setText] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [showImage, setShowImage] = useState(false);
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState('');
+
+  const placeholder = wallOwnerName
+    ? `Write something on ${wallOwnerName}'s wall…`
+    : "What's on your mind?";
 
   async function submit(e) {
     e.preventDefault();
@@ -19,6 +24,7 @@ export default function Composer({ onPosted }) {
       await api.post('/posts', {
         text: text.trim(),
         imageUrl: imageUrl.trim() || undefined,
+        wallOwner: wallOwnerId || undefined,
       });
       setText('');
       setImageUrl('');
@@ -37,7 +43,7 @@ export default function Composer({ onPosted }) {
         rows={3}
         value={text}
         onChange={(e) => setText(e.target.value)}
-        placeholder="What's on your mind?"
+        placeholder={placeholder}
         aria-label="Write a post"
       />
       {showImage && (

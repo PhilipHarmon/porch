@@ -4,6 +4,7 @@ import api from '../api.js';
 import { useAuth } from '../auth.jsx';
 import { apiError } from '../utils.js';
 import Avatar from '../components/Avatar.jsx';
+import Composer from '../components/Composer.jsx';
 import FriendButton from '../components/FriendButton.jsx';
 import PostCard from '../components/PostCard.jsx';
 
@@ -26,6 +27,9 @@ export default function Profile() {
 
   const targetId = id === 'me' ? user?.id : id;
   const isOwn = user && targetId === user.id;
+
+  // Photo strip: newest images from the timeline (own posts + wall posts).
+  const photos = posts.filter((p) => p.imageUrl).slice(0, 9);
 
   const load = useCallback(async () => {
     if (!targetId) return;
@@ -96,7 +100,10 @@ export default function Profile() {
           <Avatar user={profile} size={96} />
         </div>
         <div className="profile-info">
-          <h1>{profile.name}</h1>
+          <h1>
+            {profile.name}
+            {profile.isAdmin && <span className="admin-badge">Admin</span>}
+          </h1>
           <p className="muted">
             {profile.friendCount} {profile.friendCount === 1 ? 'friend' : 'friends'}
           </p>
@@ -113,6 +120,29 @@ export default function Profile() {
       </div>
 
       {profile.bio && <p className="profile-bio">{profile.bio}</p>}
+
+      {photos.length > 0 && (
+        <>
+          <h2 className="section-title">Photos</h2>
+          <div className="photo-grid">
+            {photos.map((p) => (
+              <img key={p.id} src={p.imageUrl} alt="" loading="lazy" className="photo-thumb" />
+            ))}
+          </div>
+        </>
+      )}
+
+      {isOwn ? (
+        <Composer onPosted={load} />
+      ) : (
+        profile.friendship === 'friends' && (
+          <Composer
+            wallOwnerId={profile.id}
+            wallOwnerName={profile.name.split(' ')[0]}
+            onPosted={load}
+          />
+        )
+      )}
 
       {isOwn && editing && (
         <form className="profile-edit" onSubmit={saveProfile}>

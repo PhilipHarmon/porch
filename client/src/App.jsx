@@ -7,6 +7,7 @@ import Feed from './pages/Feed.jsx';
 import Profile from './pages/Profile.jsx';
 import Friends from './pages/Friends.jsx';
 import Notifications from './pages/Notifications.jsx';
+import Admin from './pages/Admin.jsx';
 
 export default function App() {
   return (
@@ -44,6 +45,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Notifications />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin"
+            element={
+              <ProtectedRoute>
+                <Admin />
               </ProtectedRoute>
             }
           />

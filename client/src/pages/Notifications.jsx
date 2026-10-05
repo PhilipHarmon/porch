@@ -15,6 +15,8 @@ function notificationText(n) {
       return `${name} liked your post`;
     case 'comment':
       return `${name} commented on your post`;
+    case 'wall_post':
+      return `${name} wrote on your wall`;
     default:
       return `${name} did something`;
   }
@@ -26,6 +28,8 @@ function notificationLink(n) {
       return '/friends';
     case 'friend_accept':
       return n.actor ? `/profile/${n.actor.id}` : '/friends';
+    case 'wall_post':
+      return '/profile/me';
     default:
       return '/';
   }
@@ -92,7 +96,7 @@ export default function Notifications() {
         )}
       </div>
       {error && <p className="alert alert-error">{error}</p>}
-      {items.length === 0 && <p className="muted">Nothing yet — likes, comments, and friend requests will show up here.</p>}
+      {items.length === 0 && <p className="muted">Nothing yet — likes, comments, wall posts, and friend requests will show up here.</p>}
       {items.map((n) => (
         <Link
           key={n.id}

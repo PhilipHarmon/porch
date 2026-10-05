@@ -17,6 +17,7 @@ export default function PostCard({ post, onDeleted }) {
   const [deleting, setDeleting] = useState(false);
 
   const isOwn = user && post.author && post.author.id === user.id;
+  const canDelete = isOwn || user?.isAdmin;
 
   async function toggleLike() {
     try {
@@ -46,18 +47,26 @@ export default function PostCard({ post, onDeleted }) {
           <Avatar user={post.author} size={44} />
         </Link>
         <div className="post-meta">
-          <Link to={`/profile/${post.author.id}`} className="post-author">
-            {post.author.name}
-          </Link>
+          <span>
+            <Link to={`/profile/${post.author.id}`} className="post-author">
+              {post.author.name}
+            </Link>
+            {post.wallOwner && post.wallOwner.id !== post.author.id && (
+              <span className="post-wall">
+                {' → '}
+                <Link to={`/profile/${post.wallOwner.id}`}>{post.wallOwner.name}'s wall</Link>
+              </span>
+            )}
+          </span>
           <span className="post-time">{timeAgo(post.createdAt)}</span>
         </div>
-        {isOwn && (
+        {canDelete && (
           <button
             type="button"
             className="btn btn-ghost btn-small post-delete"
             disabled={deleting}
             onClick={handleDelete}
-            title="Delete post"
+            title={isOwn ? 'Delete post' : 'Delete post (admin)'}
           >
             Delete
           </button>

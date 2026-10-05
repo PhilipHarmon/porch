@@ -8,7 +8,8 @@ const { getFriendIds } = require('../utils/friends');
 const router = express.Router();
 
 // GET /api/feed — posts by me + my accepted friends, newest first, paginated.
-// Each item carries author {id,name,avatarUrl}, likeCount, commentCount, likedByMe.
+// Includes wall posts written on our walls. Each item carries
+// author {id,name,avatarUrl}, wallOwner (or null), likeCount, commentCount, likedByMe.
 router.get('/', authRequired, async (req, res, next) => {
   try {
     const page = Math.max(1, parseInt(req.query.page, 10) || 1);
@@ -16,13 +17,15 @@ router.get('/', authRequired, async (req, res, next) => {
 
     const friendIds = await getFriendIds(req.user.id);
     const authors = [req.user.id, ...friendIds];
+    const filter = { $or: [{ author: { $in: authors } }, { wallOwner: { $in: authors } }] };
 
-    const total = await Post.countDocuments({ author: { $in: authors } });
-    const posts = await Post.find({ author: { $in: authors } })
+    const total = await Post.countDocuments(filter);
+    const posts = await Post.find(filter)
       .sort({ createdAt: -1 })
       .skip((page - 1) * limit)
       .limit(limit)
-      .populate('author', 'name avatarUrl');
+      .populate('author', 'name avatarUrl')
+      .populate('wallOwner', 'name avatarUrl');
 
     const postIds = posts.map((p) => p._id);
 
@@ -53,6 +56,13 @@ router.get('/', authRequired, async (req, res, next) => {
         name: p.author.name,
         avatarUrl: p.author.avatarUrl || '',
       },
+      wallOwner: p.wallOwner
+        ? {
+            id: p.wallOwner.id,
+            name: p.wallOwner.name,
+            avatarUrl: p.wallOwner.avatarUrl || '',
+          }
+        : null,
       likeCount: likeMap.get(p._id.toString()) || 0,
       commentCount: commentMap.get(p._id.toString()) || 0,
       likedByMe: likedSet.has(p._id.toString()),

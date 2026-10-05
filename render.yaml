@@ -20,6 +20,8 @@ services:
         generateValue: true # long random value, generated once
       - key: CLIENT_URL
         sync: false # set AFTER the client deploys, e.g. https://porch-client.onrender.com
+      - key: ADMIN_EMAILS
+        sync: false # comma-separated emails that get admin powers on boot
 
   # ---- Frontend (React + Vite static site) ----
   - type: web

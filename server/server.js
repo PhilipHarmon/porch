@@ -10,6 +10,8 @@ const friendsRoutes = require('./routes/friends');
 const postsRoutes = require('./routes/posts');
 const feedRoutes = require('./routes/feed');
 const notificationsRoutes = require('./routes/notifications');
+const adminRoutes = require('./routes/admin');
+const User = require('./models/User');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,6 +38,7 @@ app.use('/api/friends', friendsRoutes);
 app.use('/api/posts', postsRoutes);
 app.use('/api/feed', feedRoutes);
 app.use('/api/notifications', notificationsRoutes);
+app.use('/api/admin', adminRoutes);
 
 // 404 for unknown API routes.
 app.use('/api', (req, res) => res.status(404).json({ error: 'Not found' }));
@@ -54,9 +57,24 @@ app.use((err, req, res, _next) => {
 
 async function start() {
   await connectDB();
+  await promoteAdmins();
   app.listen(PORT, () => {
     console.log(`Porch API listening on http://localhost:${PORT}`);
   });
+}
+
+// Promotes any user whose email is listed in ADMIN_EMAILS (comma-separated)
+// to admin on boot. Admins can delete any post and manage users.
+async function promoteAdmins() {
+  const emails = (process.env.ADMIN_EMAILS || '')
+    .split(',')
+    .map((s) => s.trim().toLowerCase())
+    .filter(Boolean);
+  if (!emails.length) return;
+  const result = await User.updateMany({ email: { $in: emails } }, { $set: { isAdmin: true } });
+  if (result.modifiedCount > 0) {
+    console.log(`Promoted ${result.modifiedCount} admin(s): ${emails.join(', ')}`);
+  }
 }
 
 start().catch((err) => {

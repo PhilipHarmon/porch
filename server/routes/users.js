@@ -70,6 +70,7 @@ router.get('/:id', optionalAuth, async (req, res, next) => {
       createdAt: user.createdAt,
       friendCount,
       friendship,
+      isAdmin: !!user.isAdmin,
     });
   } catch (err) {
     return next(err);

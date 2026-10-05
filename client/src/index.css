@@ -20,10 +20,8 @@
   --info-ink: #2c4f74;
   --radius: 10px;
   --shadow: 0 2px 10px rgba(80, 60, 30, 0.08);
-  --font-serif: Georgia, "Times New Roman", "Noto Serif", serif;
-  --font-sans:
-    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
-    sans-serif;
+  --font-serif: Georgia, 'Times New Roman', 'Noto Serif', serif;
+  --font-sans: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
 }
 
 * {
@@ -43,22 +41,15 @@ body {
   line-height: 1.65;
 }
 
-h1,
-h2,
-h3,
-h4 {
+h1, h2, h3, h4 {
   font-family: var(--font-serif);
   line-height: 1.25;
   margin: 0 0 0.6em;
   color: var(--ink);
 }
 
-h1 {
-  font-size: 2rem;
-}
-h2 {
-  font-size: 1.4rem;
-}
+h1 { font-size: 2rem; }
+h2 { font-size: 1.4rem; }
 
 a {
   color: var(--accent);
@@ -75,9 +66,7 @@ img {
   display: block;
 }
 
-.muted {
-  color: var(--muted);
-}
+.muted { color: var(--muted); }
 
 /* ---------- layout ---------- */
 .app-shell {
@@ -103,9 +92,7 @@ img {
   gap: 1rem;
   margin-bottom: 1rem;
 }
-.page-head h1 {
-  margin: 0;
-}
+.page-head h1 { margin: 0; }
 
 .section-title {
   margin: 2rem 0 0.75rem;
@@ -258,6 +245,57 @@ img {
   padding: 0.35rem 0.75rem;
   font-size: 0.85rem;
 }
+.btn-danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+.btn-danger:hover:not(:disabled) {
+  background: #93291f;
+  border-color: #93291f;
+  color: #fff;
+}
+
+/* ---------- admin panel ---------- */
+.admin-user {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 0.9rem 0;
+  border-bottom: 1px solid var(--line);
+}
+.admin-user-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.admin-user-name {
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+.admin-badge {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  background: var(--accent-soft);
+  color: var(--accent-dark);
+  border: 1px solid var(--accent);
+  border-radius: 999px;
+  padding: 0.1rem 0.55rem;
+}
+.admin-user-meta {
+  font-size: 0.85rem;
+}
+.admin-user-actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
 
 /* ---------- forms ---------- */
 .field {
@@ -378,6 +416,33 @@ textarea {
 }
 .post-author:hover {
   color: var(--accent);
+}
+
+.post-wall {
+  font-size: 0.9rem;
+  color: var(--muted);
+  font-weight: 500;
+}
+.post-wall a {
+  color: var(--muted);
+}
+.post-wall a:hover {
+  color: var(--accent);
+}
+
+/* ---------- profile photo grid ---------- */
+.photo-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.photo-thumb {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
 }
 
 .post-time {

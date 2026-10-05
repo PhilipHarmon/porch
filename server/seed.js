@@ -158,6 +158,20 @@ async function seed() {
     const created = await Post.create({ author: byName(p.author), text: p.text, imageUrl: p.imageUrl || '' });
     posts.push(created);
   }
+
+  // A demo wall post: Jordan wishes Maya a happy birthday on her wall.
+  const wallPost = await Post.create({
+    author: byName('Jordan Ellis'),
+    wallOwner: byName('Maya Chen'),
+    text: 'Happy birthday, Maya! Hope the trail treats you to another sunrise like this one.',
+    imageUrl: 'https://picsum.photos/seed/porch-birthday/600/400',
+  });
+  await Notification.create({
+    recipient: byName('Maya Chen'),
+    type: 'wall_post',
+    actor: byName('Jordan Ellis'),
+    post: wallPost._id,
+  });
   console.log(`Created ${posts.length} posts`);
 
   // Likes: [postIndex, userName]

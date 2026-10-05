@@ -8,6 +8,7 @@ const userSchema = new mongoose.Schema(
     bio: { type: String, default: '', trim: true, maxlength: 300 },
     avatarUrl: { type: String, default: '', trim: true },
     coverUrl: { type: String, default: '', trim: true },
+    isAdmin: { type: Boolean, default: false },
   },
   { timestamps: true },
 );
