@@ -431,6 +431,23 @@ textarea {
 }
 
 /* ---------- profile photo grid ---------- */
+.photos-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+.photos-head .section-title {
+  margin-bottom: 0.6em;
+}
+.photo-form {
+  background: var(--surface);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.25rem;
+  margin-bottom: 1.5rem;
+}
 .photo-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);

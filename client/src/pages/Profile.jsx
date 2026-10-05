@@ -6,6 +6,7 @@ import { apiError } from '../utils.js';
 import Avatar from '../components/Avatar.jsx';
 import Composer from '../components/Composer.jsx';
 import FriendButton from '../components/FriendButton.jsx';
+import PhotoForm from '../components/PhotoForm.jsx';
 import PostCard from '../components/PostCard.jsx';
 
 // Public profile. Own profile gets an edit form; others get a FriendButton.
@@ -30,6 +31,9 @@ export default function Profile() {
 
   // Photo strip: newest images from the timeline (own posts + wall posts).
   const photos = posts.filter((p) => p.imageUrl).slice(0, 9);
+
+  // "Add photos" toggle (own profile only).
+  const [showPhotoForm, setShowPhotoForm] = useState(false);
 
   const load = useCallback(async () => {
     if (!targetId) return;
@@ -121,14 +125,37 @@ export default function Profile() {
 
       {profile.bio && <p className="profile-bio">{profile.bio}</p>}
 
-      {photos.length > 0 && (
+      {(photos.length > 0 || isOwn) && (
         <>
-          <h2 className="section-title">Photos</h2>
-          <div className="photo-grid">
-            {photos.map((p) => (
-              <img key={p.id} src={p.imageUrl} alt="" loading="lazy" className="photo-thumb" />
-            ))}
+          <div className="photos-head">
+            <h2 className="section-title">Photos</h2>
+            {isOwn && (
+              <button
+                type="button"
+                className="btn btn-ghost btn-small"
+                onClick={() => setShowPhotoForm((s) => !s)}
+              >
+                {showPhotoForm ? 'Cancel' : '+ Add photos'}
+              </button>
+            )}
           </div>
+          {isOwn && showPhotoForm && (
+            <PhotoForm
+              onAdded={() => {
+                setShowPhotoForm(false);
+                load();
+              }}
+            />
+          )}
+          {photos.length > 0 ? (
+            <div className="photo-grid">
+              {photos.map((p) => (
+                <img key={p.id} src={p.imageUrl} alt="" loading="lazy" className="photo-thumb" />
+              ))}
+            </div>
+          ) : (
+            isOwn && <p className="muted">No photos yet — add your first one above.</p>
+          )}
         </>
       )}
 

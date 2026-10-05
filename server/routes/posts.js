@@ -74,8 +74,10 @@ router.get('/', async (req, res, next) => {
 router.post('/', authRequired, async (req, res, next) => {
   try {
     const { text, imageUrl, wallOwner } = req.body || {};
-    if (!text || !text.trim()) {
-      return res.status(400).json({ error: 'Post text is required' });
+    const cleanText = (text || '').trim();
+    const cleanImage = (imageUrl || '').trim();
+    if (!cleanText && !cleanImage) {
+      return res.status(400).json({ error: 'Post text or an image is required' });
     }
 
     let wallOwnerId = null;
@@ -95,8 +97,8 @@ router.post('/', authRequired, async (req, res, next) => {
 
     const post = await Post.create({
       author: req.user.id,
-      text: text.trim(),
-      imageUrl: (imageUrl || '').trim(),
+      text: cleanText,
+      imageUrl: cleanImage,
       wallOwner: wallOwnerId,
     });
     await post.populate([
@@ -152,14 +154,16 @@ router.put('/:id', authRequired, async (req, res, next) => {
     }
 
     const { text, imageUrl } = req.body || {};
+    const newImageUrl = imageUrl !== undefined ? String(imageUrl).trim() : post.imageUrl;
     if (text !== undefined) {
-      if (!text.trim()) {
-        return res.status(400).json({ error: 'Post text cannot be empty' });
+      const newText = text.trim();
+      if (!newText && !newImageUrl) {
+        return res.status(400).json({ error: 'Post text or an image is required' });
       }
-      post.text = text.trim();
+      post.text = newText;
     }
     if (imageUrl !== undefined) {
-      post.imageUrl = String(imageUrl).trim();
+      post.imageUrl = newImageUrl;
     }
     await post.save();
     await post.populate('author', 'name avatarUrl');

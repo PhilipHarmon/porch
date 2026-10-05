@@ -73,7 +73,7 @@ export default function PostCard({ post, onDeleted }) {
         )}
       </div>
 
-      <p className="post-text">{post.text}</p>
+      {post.text && <p className="post-text">{post.text}</p>}
       {post.imageUrl && <img className="post-image" src={post.imageUrl} alt="" loading="lazy" />}
 
       <div className="post-actions">

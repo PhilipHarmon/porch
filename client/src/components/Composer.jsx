@@ -15,9 +15,11 @@ export default function Composer({ onPosted, wallOwnerId, wallOwnerName }) {
     ? `Write something on ${wallOwnerName}'s wall…`
     : "What's on your mind?";
 
+  const canPost = text.trim() || imageUrl.trim();
+
   async function submit(e) {
     e.preventDefault();
-    if (!text.trim() || posting) return;
+    if (!canPost || posting) return;
     setPosting(true);
     setError('');
     try {
@@ -64,7 +66,7 @@ export default function Composer({ onPosted, wallOwnerId, wallOwnerName }) {
         >
           {showImage ? 'Hide image link' : '+ Add image'}
         </button>
-        <button type="submit" className="btn btn-primary" disabled={posting || !text.trim()}>
+        <button type="submit" className="btn btn-primary" disabled={posting || !canPost}>
           {posting ? 'Posting…' : 'Post'}
         </button>
       </div>
