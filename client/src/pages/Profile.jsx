@@ -35,6 +35,19 @@ export default function Profile() {
   // "Add photos" toggle (own profile only).
   const [showPhotoForm, setShowPhotoForm] = useState(false);
 
+  // Lightbox: index into `photos` of the photo being viewed full-size.
+  const [lightboxIndex, setLightboxIndex] = useState(null);
+
+  // Close the lightbox on Escape.
+  useEffect(() => {
+    if (lightboxIndex === null) return;
+    function onKey(e) {
+      if (e.key === 'Escape') setLightboxIndex(null);
+    }
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [lightboxIndex]);
+
   const load = useCallback(async () => {
     if (!targetId) return;
     setLoading(true);
@@ -148,11 +161,65 @@ export default function Profile() {
             />
           )}
           {photos.length > 0 ? (
-            <div className="photo-grid">
-              {photos.map((p) => (
-                <img key={p.id} src={p.imageUrl} alt="" loading="lazy" className="photo-thumb" />
-              ))}
-            </div>
+            <>
+              <div className="photo-grid">
+                {photos.map((p, i) => (
+                  <button
+                    key={p.id}
+                    type="button"
+                    className="photo-thumb-btn"
+                    onClick={() => setLightboxIndex(i)}
+                    aria-label="View photo"
+                  >
+                    <img src={p.imageUrl} alt="" loading="lazy" className="photo-thumb" />
+                  </button>
+                ))}
+              </div>
+              {lightboxIndex !== null && (
+                <div className="lightbox" onClick={() => setLightboxIndex(null)}>
+                  <button
+                    type="button"
+                    className="lightbox-close"
+                    onClick={() => setLightboxIndex(null)}
+                    aria-label="Close photo viewer"
+                  >
+                    ✕
+                  </button>
+                  {photos.length > 1 && (
+                    <>
+                      <button
+                        type="button"
+                        className="lightbox-nav lightbox-prev"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLightboxIndex((lightboxIndex - 1 + photos.length) % photos.length);
+                        }}
+                        aria-label="Previous photo"
+                      >
+                        ‹
+                      </button>
+                      <button
+                        type="button"
+                        className="lightbox-nav lightbox-next"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setLightboxIndex((lightboxIndex + 1) % photos.length);
+                        }}
+                        aria-label="Next photo"
+                      >
+                        ›
+                      </button>
+                    </>
+                  )}
+                  <img
+                    src={photos[lightboxIndex].imageUrl}
+                    alt=""
+                    className="lightbox-img"
+                    onClick={(e) => e.stopPropagation()}
+                  />
+                </div>
+              )}
+            </>
           ) : (
             isOwn && <p className="muted">No photos yet — add your first one above.</p>
           )}

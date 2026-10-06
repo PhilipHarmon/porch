@@ -32,6 +32,13 @@ html {
   -webkit-text-size-adjust: 100%;
 }
 
+/* Guard against stray horizontal overflow on narrow screens.
+   `clip` (not `hidden`) so the sticky header keeps working. */
+html,
+body {
+  overflow-x: clip;
+}
+
 body {
   margin: 0;
   background: var(--bg);
@@ -160,6 +167,43 @@ img {
 .site-nav a:hover {
   color: #ffffff;
   text-decoration: none;
+}
+/* Blog link rendered as a proper button on the sunset header. */
+.blog-btn {
+  background: #fff8f0;
+  color: #7e3517 !important;
+  font-weight: 700;
+  font-size: 1rem;
+  padding: 0.35rem 1.1rem;
+  border-radius: 999px;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, 0.25);
+  align-self: center;
+}
+.blog-btn:hover {
+  background: #ffffff;
+  color: #7e3517 !important;
+  text-decoration: none;
+}
+
+/* Hamburger toggle for the mobile nav: hidden on desktop, shown under 720px. */
+.nav-toggle {
+  display: none;
+  background: transparent;
+  border: 1px solid rgba(255, 233, 210, 0.55);
+  border-radius: 8px;
+  color: #fff8f0;
+  font-size: 1.35rem;
+  line-height: 1;
+  width: 2.75rem;
+  height: 2.75rem;
+  cursor: pointer;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-family: var(--font-sans);
+}
+.nav-toggle:hover {
+  background: rgba(255, 255, 255, 0.12);
 }
 .header-auth .btn-ghost {
   color: #ffe9d2;
@@ -408,6 +452,13 @@ textarea {
   display: flex;
   flex-direction: column;
   flex: 1;
+  min-width: 0;
+}
+
+/* Long names / wall links wrap instead of squeezing the delete button. */
+.post-author,
+.post-wall {
+  overflow-wrap: anywhere;
 }
 
 .post-author {
@@ -454,13 +505,81 @@ textarea {
   gap: 0.5rem;
   margin-bottom: 1.5rem;
 }
+.photo-thumb-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 8px;
+  overflow: hidden;
+  line-height: 0;
+}
+.photo-thumb-btn:hover .photo-thumb {
+  transform: scale(1.04);
+}
 .photo-thumb {
   width: 100%;
   aspect-ratio: 1;
   object-fit: cover;
   border-radius: 8px;
   box-shadow: var(--shadow);
+  transition: transform 0.2s ease;
 }
+
+/* ---------- photo lightbox ---------- */
+.lightbox {
+  position: fixed;
+  inset: 0;
+  background: rgba(24, 14, 8, 0.92);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 100;
+  padding: 3rem 4rem;
+  cursor: zoom-out;
+}
+.lightbox-img {
+  max-width: 100%;
+  max-height: 88vh;
+  border-radius: 12px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.5);
+  cursor: default;
+}
+.lightbox-close {
+  position: absolute;
+  top: 1rem;
+  right: 1.25rem;
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff8f0;
+  font-size: 1.2rem;
+  width: 2.5rem;
+  height: 2.5rem;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.lightbox-close:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.lightbox-nav {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff8f0;
+  font-size: 2rem;
+  line-height: 1;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 50%;
+  cursor: pointer;
+}
+.lightbox-nav:hover {
+  background: rgba(255, 255, 255, 0.25);
+}
+.lightbox-prev { left: 1rem; }
+.lightbox-next { right: 1rem; }
 
 .post-time {
   font-size: 0.82rem;
@@ -562,6 +681,14 @@ textarea {
   display: flex;
   gap: 0.5rem;
   margin-top: 0.75rem;
+}
+/* Keep the input from squeezing the Send button out of the row. */
+.comment-form input {
+  min-width: 0;
+  flex: 1;
+}
+.comment-form .btn {
+  flex-shrink: 0;
 }
 
 /* ---------- friends ---------- */
@@ -712,7 +839,74 @@ textarea {
 }
 
 /* ---------- responsive ---------- */
+@media (max-width: 900px) {
+  .header-inner {
+    gap: 1rem;
+  }
+  .site-nav {
+    gap: 1rem;
+  }
+  .site-nav a {
+    font-size: 1.05rem;
+  }
+  .main-content {
+    padding: 1.25rem 0.9rem 3rem;
+  }
+}
+
+/* Mobile nav: hamburger toggle collapses the inline links into a
+   dropdown panel styled to match the sunset header. */
+@media (max-width: 720px) {
+  .header-inner {
+    gap: 0.75rem;
+    position: relative;
+  }
+  .site-title {
+    flex: 1;
+  }
+  .nav-toggle {
+    display: inline-flex;
+  }
+  .site-nav {
+    display: none;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    right: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0;
+    flex: none;
+    background: linear-gradient(135deg, #a34a24 0%, #8a3d1c 60%, #7e3517 100%);
+    padding: 0.4rem 1rem 1rem;
+    box-shadow: 0 14px 28px rgba(60, 30, 10, 0.4);
+    z-index: 50;
+  }
+  .site-nav.open {
+    display: flex;
+  }
+  .site-nav a {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+    padding: 0.55rem 0.25rem;
+    font-size: 1.1rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.16);
+  }
+  .site-nav .blog-btn {
+    align-self: flex-start;
+    margin-top: 0.7rem;
+    min-height: 44px;
+  }
+  .header-auth .btn {
+    padding: 0.5rem 0.8rem;
+  }
+}
+
 @media (max-width: 640px) {
+  h1 { font-size: 1.7rem; }
+  h2 { font-size: 1.25rem; }
+
   .site-title {
     font-size: 1.7rem;
   }
@@ -720,19 +914,296 @@ textarea {
     width: 36px;
     height: 36px;
   }
-  .site-nav {
-    gap: 0.8rem;
-  }
-  .site-nav a {
-    font-size: 1rem;
-  }
-  .header-inner {
-    gap: 1rem;
-  }
   .auth-page {
     padding: 1.25rem;
   }
+
+  /* Slim card padding so content gets more of the 375px width. */
+  .post-card {
+    padding: 0.9rem 0.9rem;
+  }
+  .profile-bio,
+  .profile-edit,
+  .photo-form {
+    padding: 1rem;
+  }
+
+  /* Bump small controls up to ~44px tap targets. */
+  .btn-small {
+    padding: 0.6rem 0.95rem;
+  }
+  .like-btn,
+  .comment-toggle {
+    padding: 0.6rem 1rem;
+  }
+
+  /* Profile header: stack actions under avatar + name. */
+  .profile-head {
+    flex-wrap: wrap;
+  }
+  .profile-actions {
+    flex-basis: 100%;
+    padding-bottom: 0;
+  }
+  .profile-info h1 {
+    font-size: 1.45rem;
+    overflow-wrap: anywhere;
+  }
+
+  /* Friend rows: let Accept/Decline wrap instead of crushing the name. */
+  .friend-row {
+    flex-wrap: wrap;
+  }
+  .friend-actions {
+    flex-shrink: 0;
+    flex-wrap: wrap;
+  }
   .friend-bio {
     max-width: 180px;
+  }
+
+  /* Admin rows: actions drop to their own row under the info. */
+  .admin-user {
+    flex-wrap: wrap;
+  }
+  .admin-user-actions {
+    flex-basis: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+  }
+  .admin-user-meta,
+  .admin-user-name {
+    overflow-wrap: anywhere;
+  }
+
+  /* Photo grid stays 3-up (~109px cells), with tighter gaps. */
+  .photo-grid {
+    gap: 0.375rem;
+  }
+
+  /* Lightbox: shrink padding and arrows so everything fits 375px. */
+  .lightbox {
+    padding: 3.5rem 0.75rem 1rem;
+  }
+  .lightbox-img {
+    max-height: 80vh;
+  }
+  .lightbox-close {
+    top: 0.6rem;
+    right: 0.6rem;
+    width: 2.75rem;
+    height: 2.75rem;
+  }
+  .lightbox-nav {
+    width: 2.75rem;
+    height: 2.75rem;
+    font-size: 1.6rem;
+  }
+  .lightbox-prev {
+    left: 0.35rem;
+  }
+  .lightbox-next {
+    right: 0.35rem;
+  }
+}
+
+/* ============================================================
+   Interactive polish — soft glow states (Muse nav-rail flavor,
+   adapted to Porch's warm design language).
+   Purely additive; desktop layouts unchanged.
+   - All hover-driven effects sit inside @media (hover: hover),
+     so touch devices never get stuck hover states.
+   - All transitions live inside
+     @media (prefers-reduced-motion: no-preference).
+   - Touch keeps instant :active press feedback (no media query).
+   ============================================================ */
+
+/* --- Touch press feedback (instant, no motion) --- */
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.like-btn:active,
+.comment-toggle:active {
+  transform: scale(0.93);
+}
+.photo-thumb-btn:active .photo-thumb {
+  transform: scale(0.97);
+}
+.blog-btn:active {
+  transform: scale(0.96);
+}
+.site-nav a:active {
+  opacity: 0.85;
+}
+
+/* --- Transitions: only when motion is welcome --- */
+@media (prefers-reduced-motion: no-preference) {
+  .site-title,
+  .site-nav a,
+  .blog-btn,
+  .nav-toggle,
+  .header-profile,
+  .header-auth .btn,
+  .btn,
+  .like-btn,
+  .comment-toggle,
+  .post-author,
+  .post-wall a,
+  .friend-who,
+  .post-card,
+  .composer,
+  .friend-row,
+  .notif-item,
+  .profile-bio,
+  .profile-edit,
+  .photo-form,
+  .auth-page,
+  .photo-thumb,
+  .lightbox-close,
+  .lightbox-nav,
+  input[type="text"],
+  input[type="email"],
+  input[type="password"],
+  input[type="url"],
+  input[type="search"],
+  textarea {
+    transition: color 180ms ease,
+      background-color 180ms ease,
+      border-color 180ms ease,
+      box-shadow 220ms ease,
+      text-shadow 180ms ease,
+      outline-color 180ms ease,
+      opacity 180ms ease,
+      transform 200ms ease;
+  }
+}
+
+/* --- Warm focus-ring glow for all form inputs (keyboard + touch safe) --- */
+input:focus,
+textarea:focus {
+  box-shadow: 0 0 0 3px rgba(201, 106, 53, 0.22),
+    0 0 14px rgba(201, 106, 53, 0.28);
+}
+
+/* --- Persistent "liked" state: slightly stronger terracotta halo --- */
+.like-btn.liked {
+  box-shadow: 0 0 14px rgba(179, 85, 46, 0.5);
+}
+
+/* ============================================================
+   Hover-driven glow effects (hover-capable devices only)
+   ============================================================ */
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+
+  /* 1 — header nav on the sunset gradient: warm cream glow */
+  .site-title:hover {
+    text-shadow: 0 0 16px rgba(255, 248, 240, 0.85),
+      0 1px 3px rgba(0, 0, 0, 0.25);
+  }
+  .site-nav a:hover {
+    color: #ffffff;
+    text-decoration: none;
+    text-shadow: 0 0 12px rgba(255, 248, 240, 0.9),
+      0 0 26px rgba(255, 222, 180, 0.5);
+  }
+  .site-nav a:focus-visible {
+    outline: 2px solid #fff8f0;
+    outline-offset: 4px;
+    box-shadow: 0 0 14px rgba(255, 248, 240, 0.65);
+  }
+  /* Persistent "current section" indicator. Activates automatically if
+     the nav ever carries aria-current="page" (e.g. via NavLink) — the
+     current markup uses plain Links, so this is forward-compatible CSS. */
+  .site-nav a[aria-current="page"] {
+    color: #ffffff;
+    text-shadow: 0 0 12px rgba(255, 248, 240, 0.9),
+      0 0 26px rgba(255, 222, 180, 0.5);
+    box-shadow: inset 0 -2px 0 #fff8f0,
+      0 0 12px rgba(255, 248, 240, 0.35);
+  }
+  .blog-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(255, 248, 240, 0.35),
+      0 0 18px rgba(255, 240, 220, 0.85),
+      0 2px 8px rgba(0, 0, 0, 0.25);
+  }
+  .header-profile:hover {
+    outline: 2px solid #fff8f0;
+    box-shadow: 0 0 16px rgba(255, 248, 240, 0.8);
+  }
+  .header-auth .btn-ghost:hover:not(:disabled) {
+    box-shadow: 0 0 16px rgba(255, 248, 240, 0.5);
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.7);
+  }
+  .nav-toggle:hover {
+    background: rgba(255, 255, 255, 0.16);
+    box-shadow: 0 0 12px rgba(255, 248, 240, 0.5);
+  }
+
+  /* 2 — buttons: glow halo + slight lift */
+  .btn-primary:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(201, 106, 53, 0.28),
+      0 8px 20px rgba(179, 85, 46, 0.4);
+  }
+  .btn-ghost:hover:not(:disabled) {
+    box-shadow: 0 4px 14px rgba(80, 60, 30, 0.12);
+  }
+  .btn-danger:hover:not(:disabled) {
+    transform: translateY(-1px);
+    box-shadow: 0 0 0 3px rgba(179, 55, 47, 0.22),
+      0 8px 20px rgba(179, 55, 47, 0.3);
+  }
+
+  /* 3 — cards: subtle lift + shadow deepening */
+  .post-card:hover,
+  .composer:hover,
+  .profile-bio:hover,
+  .profile-edit:hover,
+  .photo-form:hover,
+  .auth-page:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 26px rgba(80, 60, 30, 0.13);
+  }
+  .friend-row:hover,
+  .notif-item:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(80, 60, 30, 0.12);
+  }
+  /* Photo thumbnails: gentle zoom-glow (keeps the existing scale rule) */
+  .photo-thumb-btn:hover .photo-thumb {
+    box-shadow: 0 0 0 3px rgba(201, 106, 53, 0.35),
+      0 10px 24px rgba(80, 60, 30, 0.22);
+  }
+
+  /* 5 — like/comment icon buttons: halo on hover, stronger when liked */
+  .like-btn:hover,
+  .comment-toggle:hover {
+    box-shadow: 0 0 12px rgba(201, 106, 53, 0.4);
+  }
+  .like-btn.liked:hover {
+    box-shadow: 0 0 20px rgba(179, 85, 46, 0.65);
+  }
+
+  /* Lightbox controls: soft cream halo on the dark backdrop */
+  .lightbox-close:hover,
+  .lightbox-nav:hover {
+    box-shadow: 0 0 16px rgba(255, 248, 240, 0.55);
+  }
+
+  /* Small text links get a whisper of glow too */
+  .post-author:hover {
+    text-shadow: 0 0 10px rgba(201, 106, 53, 0.35);
+  }
+  .friend-who:hover .friend-name {
+    text-shadow: 0 0 10px rgba(201, 106, 53, 0.35);
+  }
+}
+
+/* --- Honor reduced motion for the pre-existing thumbnail transition --- */
+@media (prefers-reduced-motion: reduce) {
+  .photo-thumb {
+    transition: none;
   }
 }

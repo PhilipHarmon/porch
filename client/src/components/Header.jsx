@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../auth.jsx';
 import api from '../api.js';
 import Avatar from './Avatar.jsx';
@@ -9,6 +9,8 @@ export default function Header() {
   const { user, logout } = useAuth();
   const navigate = useNavigate();
   const [unread, setUnread] = useState(0);
+  // Mobile nav menu (visible under 720px).
+  const [menuOpen, setMenuOpen] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -45,18 +47,34 @@ export default function Header() {
           Porch
         </Link>
         {user && (
-          <nav className="site-nav">
-            <Link to="/">Feed</Link>
-            <Link to="/friends">Friends</Link>
-            <Link to="/notifications" className="nav-with-badge">
-              Notifications
-              {unread > 0 && <span className="nav-badge">{unread > 9 ? '9+' : unread}</span>}
-            </Link>
-            {user.isAdmin && <Link to="/admin">Admin</Link>}
-            <a href="https://personal-blog-client.onrender.com" target="_blank" rel="noreferrer noopener">
-              Blog
-            </a>
-          </nav>
+          <>
+            <button
+              type="button"
+              className="nav-toggle"
+              aria-label={menuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+              aria-expanded={menuOpen}
+              onClick={() => setMenuOpen((open) => !open)}
+            >
+              {menuOpen ? '✕' : '☰'}
+            </button>
+            <nav className={`site-nav${menuOpen ? ' open' : ''}`} onClick={() => setMenuOpen(false)}>
+              <NavLink to="/" end>Feed</NavLink>
+              <NavLink to="/friends">Friends</NavLink>
+              <NavLink to="/notifications" className="nav-with-badge">
+                Notifications
+                {unread > 0 && <span className="nav-badge">{unread > 9 ? '9+' : unread}</span>}
+              </NavLink>
+              {user.isAdmin && <NavLink to="/admin">Admin</NavLink>}
+              <a
+                href="https://www.mindless-musings.com"
+                target="_blank"
+                rel="noreferrer noopener"
+                className="blog-btn"
+              >
+                Blog
+              </a>
+            </nav>
+          </>
         )}
         <div className="header-auth">
           {user ? (
