@@ -8,6 +8,7 @@ import Profile from './pages/Profile.jsx';
 import Friends from './pages/Friends.jsx';
 import Notifications from './pages/Notifications.jsx';
 import Admin from './pages/Admin.jsx';
+import { moreFromPhilip } from './siteConfig.js';
 
 export default function App() {
   return (
@@ -61,6 +62,26 @@ export default function App() {
       </main>
       <footer className="site-footer">
         <p className="muted">Porch — pull up a chair and stay a while.</p>
+        <div className="footer-more">
+          <h4>Also from Philip Harmon</h4>
+          <nav className="footer-more-links">
+            {moreFromPhilip.map((item) => {
+              const base = (item.url || '').replace(/\/+$/, '');
+              const href = item.demo ? `${base}?demo=1` : base;
+              return (
+                <a
+                  key={item.name}
+                  href={href}
+                  target="_blank"
+                  rel="noreferrer noopener"
+                  title={item.blurb}
+                >
+                  {item.demo ? `${item.name} (demo)` : item.name}
+                </a>
+              );
+            })}
+          </nav>
+        </div>
       </footer>
     </div>
   );
